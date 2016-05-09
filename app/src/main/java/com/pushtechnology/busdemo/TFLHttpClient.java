@@ -9,10 +9,8 @@ import com.loopj.android.http.RequestParams;
  */
 public final class TFLHttpClient {
 
-    private TFLHttpClient() {
-    }
-
     public static void get(String url, RequestParams params, AsyncHttpResponseHandler handler) {
-        new AsyncHttpClient().get(url, params, handler);
+        final AsyncHttpClient client = new AsyncHttpClient();
+        client.get(url, params, handler);
     }
 }

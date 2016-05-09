@@ -22,7 +22,7 @@ public class BusStopAdmin {
     private final TopicUpdateControl.ValueUpdater valueUpdater;
 
     public BusStopAdmin() {
-        session = Diffusion.sessions().principal("admin").password("password").open("ws://192.168.53.66:8080");
+        session = Diffusion.sessions().principal("admin").password("password").open(GPSSearchActivity.SERVER_URL);
         topicControl = session.feature(TopicControl.class);
         topicUpdateControl = session.feature(TopicUpdateControl.class);
 

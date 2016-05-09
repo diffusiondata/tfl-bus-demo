@@ -1,7 +1,5 @@
 package com.pushtechnology.busdemo;
 
-import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -49,11 +47,10 @@ public class BusStopsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bus_stops);
         final String longlat = (String) getIntent().getExtras().get("location");
-        Log.i("TEST", longlat);
 
         if (sessionHandler == null) {
             sessionHandler = new SessionHandler();
-            Diffusion.sessions().principal("admin").password("password").open("ws://192.168.53.66:8080", sessionHandler);
+            Diffusion.sessions().principal("admin").password("password").open(GPSSearchActivity.SERVER_URL, sessionHandler);
         }
     }
 
@@ -93,49 +90,60 @@ public class BusStopsActivity extends AppCompatActivity {
                             final String[] elements = lines[i].substring(1, lines[i].length() - 1).split(",");
 
                             final String stopName = elements[1].replaceAll("\"", "");
-                            final String stopId = elements[2].replaceAll("\"", "");
-                            stops.add( stopId + " - " + stopName );
 
-                            final String topicPath = ">BusDemo/Stops/" + stopId;
-                            topics.subscribe(topicPath, new SubscriptionCallback());
+                            //StopId will always be the last element in the list from our response
+                            final String stopId = elements[elements.length-1].replaceAll("\"", "");
+
+                            if (!stopId.contains(" ")) {
+                                stops.add( stopId + " - " + stopName );
+                                final String topicPath = ">BusDemo/Stops/" + stopId;
+                                topics.subscribe(topicPath, new SubscriptionCallback());
+                            }
                         }
 
-                        final ArrayAdapter adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, stops) {
+                        BusStopsActivity.this.runOnUiThread(new Runnable() {
+
                             @Override
-                            public View getView(int position, View convertView, ViewGroup parent) {
-                                View view = super.getView(position, convertView, parent);
-                                TextView text = (TextView) view.findViewById(android.R.id.text1);
-                                text.setTextColor(Color.RED);
-                                return view;
-                            }
-                        };
+                            public void run() {
 
-                        list_view.setAdapter(adapter);
+                                final ArrayAdapter adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, stops) {
+                                    @Override
+                                    public View getView(int position, View convertView, ViewGroup parent) {
+                                        View view = super.getView(position, convertView, parent);
+                                        TextView text = (TextView) view.findViewById(android.R.id.text1);
+                                        text.setTextColor(Color.RED);
+                                        return view;
+                                    }
+                                };
 
-                        list_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                                final String stopId = ((TextView) view).getText().toString().split("-")[0].trim();
-                                final String topicPath = ">BusDemo/Stops/" + stopId;
+                                list_view.setAdapter(adapter);
 
-                                final Topics.ValueStream<JSON> s = streamMap.get(stopId);
+                                list_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                    @Override
+                                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                                        final String stopId = ((TextView) view).getText().toString().split("-")[0].trim();
+                                        final String topicPath = ">BusDemo/Stops/" + stopId;
 
-                                if (s == null) {
-                                    final Topics.ValueStream<JSON> stream = new BusStream(view);
-                                    streamMap.put(stopId, stream);
-                                    topics.addStream(topicPath, JSON.class, stream);
-                                }
-                                else {
-                                    //small hack to trigger UI update
-                                    //this is necessary due to Android resetting ListView when out of view
-                                    //so rather than having multiple streams for the same topic,
-                                    //we remove the existing one, and add it again to trigger the call to
-                                    //onValue() and update the UI. YUCK
-                                    topics.removeStream(s);
-                                    topics.addStream(topicPath, JSON.class, s);
-                                }
+                                        final Topics.ValueStream<JSON> s = streamMap.get(stopId);
 
-                                view.setClickable(false);
+                                        if (s == null) {
+                                            final Topics.ValueStream<JSON> stream = new BusStream(view);
+                                            streamMap.put(stopId, stream);
+                                            topics.addStream(topicPath, JSON.class, stream);
+                                        }
+                                        else {
+                                            //small hack to trigger UI update
+                                            //this is necessary due to Android resetting ListView when out of view
+                                            //so rather than having multiple streams for the same topic,
+                                            //we remove the existing one, and add it again to trigger the call to
+                                            //onValue() and update the UI. YUCK
+                                            topics.removeStream(s);
+                                            topics.addStream(topicPath, JSON.class, s);
+                                        }
+
+                                        view.setClickable(false);
+                                    }
+                                });
                             }
                         });
                     }
@@ -144,6 +152,11 @@ public class BusStopsActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                     Log.d("HTTP Request", "HTTP request failed: " + statusCode);
+                }
+
+                @Override
+                public boolean getUseSynchronousMode() {
+                    return false;
                 }
             });
         }
@@ -247,5 +260,4 @@ public class BusStopsActivity extends AppCompatActivity {
 
         return Long.toString(TimeUnit.MILLISECONDS.toMinutes(arrival));
     }
-
 }

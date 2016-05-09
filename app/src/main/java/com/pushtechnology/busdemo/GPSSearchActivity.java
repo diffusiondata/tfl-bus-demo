@@ -18,6 +18,9 @@ import android.view.View;
 
 public class GPSSearchActivity extends AppCompatActivity {
 
+
+    //URL to connect to your Diffusion server / Reappt service
+    public static final String SERVER_URL = "ws://192.168.53.66:8080";
     private String longlat;
 
     @Override
