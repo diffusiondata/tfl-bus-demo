@@ -23,4 +23,15 @@ Gradle Build
  - Navigate into the bus demo project directory in your terminal
  - Run the command ```./gradlew assembleDebug```
  - An .apk file should be available in the directory ```./app/build/outputs/apk```
+
+Third-party libraries
+----------------
+[loopj Android Async HTTP](https://github.com/loopj/android-async-http)
+
+ 
+Licensing
+----------------
+This library is licensed under Apache License, Version 2.0.
+
+Copyright (C) 2016 Push Technology Ltd
  
