@@ -63,8 +63,27 @@ public final class PollingTFLDataGrabber implements DataGrabber {
                             jsonString.append('{');
 
                             for (int i = 1; i < dataLines.length; i++) {
-                                final String line = dataLines[i].substring(1, dataLines[i].length() - 1);
+                                int commaCount = 0;
+                                int nameCommaIndex = 0;
+                                String line = dataLines[i].substring(1, dataLines[i].length() - 1);
+
+                                for (int j = 0; j < line.toCharArray().length; j++) {
+                                    if (line.charAt(j) == ',') {
+                                        commaCount++;
+                                        if (commaCount == 3) {
+                                            nameCommaIndex = j;
+                                        }
+                                    }
+                                }
+
+                                if (commaCount == 5) {
+                                    final StringBuilder builder = new StringBuilder(line);
+                                    builder.setCharAt(nameCommaIndex, '-');
+                                    line = builder.toString();
+                                }
+
                                 final String[] data = line.split(",");
+
                                 final JSONObject bus = new JSONObject();
                                 final JSONObject busObject = new JSONObject();
 

@@ -15,13 +15,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 
+import java.text.DecimalFormat;
+
 
 public class GPSSearchActivity extends AppCompatActivity {
 
 
-    //URL to connect to your Diffusion server / Reappt service
-    public static final String SERVER_URL = "ws://192.168.53.66:8080";
+    //URL to connect to your Diffusion server
+    public static final String SERVER_URL = "ws://<INSERT DIFFUSION SERVER IP ADDRESS>:8080";
     private String longlat;
+    private DecimalFormat df = new DecimalFormat("0.000000");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +57,7 @@ public class GPSSearchActivity extends AppCompatActivity {
 
         @Override
         public void onLocationChanged(Location location) {
-            longlat = Double.toString(location.getLongitude()) + ',' + Double.toString(location.getLatitude());
+            longlat = df.format(location.getLatitude()) + ',' + df.format(location.getLongitude());
         }
 
         @Override

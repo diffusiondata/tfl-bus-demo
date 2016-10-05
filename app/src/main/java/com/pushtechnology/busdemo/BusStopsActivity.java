@@ -35,18 +35,22 @@ import cz.msebera.android.httpclient.Header;
 
 public class BusStopsActivity extends AppCompatActivity {
 
-    private static final String QUERY = "http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?Circle=51.5073509,-0.12775829999998223,250";
+    private static final String URL = "http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?Circle=";
+    private static int RADIUS = 250;
     private static final String RETURN_LIST = "&ReturnList=StopID,StopPointName";
     private Topics topics;
     private final List<String> stops = new ArrayList<>();
     private final Map<String, Topics.ValueStream<JSON>> streamMap = new HashMap<>();
     private SessionHandler sessionHandler;
+    private String query;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bus_stops);
         final String longlat = (String) getIntent().getExtras().get("location");
+
+        query = URL + longlat + ',' + RADIUS + RETURN_LIST;
 
         if (sessionHandler == null) {
             sessionHandler = new SessionHandler();
@@ -75,7 +79,7 @@ public class BusStopsActivity extends AppCompatActivity {
             session = s;
             Log.d("Diffusion Client", "Opened session with id: " + session.getSessionId().toString());
 
-            TFLHttpClient.get(QUERY + RETURN_LIST, null, new AsyncHttpResponseHandler() {
+            TFLHttpClient.get(query, null, new AsyncHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     final String[] lines = new String(responseBody).split("\\r?\\n");
@@ -132,11 +136,6 @@ public class BusStopsActivity extends AppCompatActivity {
                                             topics.addStream(topicPath, JSON.class, stream);
                                         }
                                         else {
-                                            //small hack to trigger UI update
-                                            //this is necessary due to Android resetting ListView when out of view
-                                            //so rather than having multiple streams for the same topic,
-                                            //we remove the existing one, and add it again to trigger the call to
-                                            //onValue() and update the UI. YUCK
                                             topics.removeStream(s);
                                             topics.addStream(topicPath, JSON.class, s);
                                         }
@@ -203,6 +202,7 @@ public class BusStopsActivity extends AppCompatActivity {
                 public void run() {
 
                     final StringBuilder data = new StringBuilder();
+                    Log.v("PATIENCE", newValue.toJsonString());
 
                     try {
                         final JSONObject dataJSON = new JSONObject(newValue.toJsonString());
