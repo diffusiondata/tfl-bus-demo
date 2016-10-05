@@ -202,7 +202,6 @@ public class BusStopsActivity extends AppCompatActivity {
                 public void run() {
 
                     final StringBuilder data = new StringBuilder();
-                    Log.v("PATIENCE", newValue.toJsonString());
 
                     try {
                         final JSONObject dataJSON = new JSONObject(newValue.toJsonString());
