@@ -76,6 +76,11 @@ public final class PollingTFLDataGrabber implements DataGrabber {
                                     }
                                 }
 
+                                //Some stop names have a comma within their name
+                                //i.e foo, bar
+                                //In this case use the index of the 3rd comma (we found above)
+                                //and replace it with a '-' so that we can split the data
+                                //normally on ','.
                                 if (commaCount == 5) {
                                     final StringBuilder builder = new StringBuilder(line);
                                     builder.setCharAt(nameCommaIndex, '-');
